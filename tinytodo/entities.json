@@ -61,6 +61,16 @@
       ],
       "readers": "Team::\"temp\"",
       "editors": "Team::\"admin\""
+    },
+    "List::\"l1\"": {
+      "uid": "List::\"l1\"",
+      "owner": "User::\"aaron\"",
+      "name": "Secret list",
+      "tasks": [
+        { "id": 0, "name": "Partial evaluation", "state": "Unchecked" }
+      ],
+      "readers": "Team::\"interns\"",
+      "editors": "Team::\"interns\""
     }
   },
   "app": {
