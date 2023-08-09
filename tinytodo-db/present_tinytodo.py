@@ -9,7 +9,7 @@ def present(cmds: list[str]):
 
 if __name__ == '__main__':
     present([
-        """start_server('./huge_entities.db')""",
+        """start_server('./entities.huge.db')""",
         """set_user(User('b02cc63c-9daf-465b-82d9-bff7e113a6d9'))""",
         """get_list('List::"2fe39ac9-c04c-424e-9f70-7083de89e51a"')""",
         """get_lists()""",

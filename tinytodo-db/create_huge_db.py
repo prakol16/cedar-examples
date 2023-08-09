@@ -203,7 +203,7 @@ def add_tasks_to_table(lists: list[FactorizationTaskList]) -> None:
 def add_to_tables(users: list[User], lists: list[FactorizationTaskList], extra_teams: list[Team]) -> None:
     global cur, con
 
-    entites_file = Path("./huge_entities.db")
+    entites_file = Path("./entities.huge.db")
 
     # If the file already exists, remove it
     entites_file.unlink(missing_ok=True)
@@ -219,7 +219,7 @@ def add_to_tables(users: list[User], lists: list[FactorizationTaskList], extra_t
     add_tasks_to_table(lists)
 
 def write_json(users: list[User], lists: list[FactorizationTaskList], extra_teams: list[Team]) -> None:
-    with open('huge_entities.json', 'w') as f:
+    with open('../tinytodo/entities.huge.json', 'w') as f:
         json.dump({
             'users': { user.as_euid(): user.to_dict() for user in users },
             'lists': { list.as_euid(): list.to_dict() for list in lists },
@@ -232,6 +232,9 @@ def main():
     global fake
 
     fake = Faker(use_weighting=False)
+
+    fake.seed(0xcedaa)
+    random.seed(0xcedaa)
 
     users = create_random_users(100000)
     lists, extra_teams = create_random_lists(users, 100000)
