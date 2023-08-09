@@ -232,9 +232,9 @@ def write_json(users: List[User], lists: List[FactorizationTaskList], extra_team
 def main():
     global fake
 
+    Faker.seed(0xcedaa)
     fake = Faker(use_weighting=False)
 
-    fake.seed(0xcedaa)
     random.seed(0xcedaa)
 
     users = create_random_users(100000)
