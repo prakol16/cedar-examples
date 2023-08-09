@@ -4,11 +4,12 @@ from faker import Faker
 import random
 from pathlib import Path
 import json
+from typing import List, Tuple
 
 class Team:
     def __init__(self, name: str, parents) -> None:
         self.name = name
-        self.parents: list[Team] = parents
+        self.parents: List[Team] = parents
 
     def __repr__(self) -> str:
         return f"Team({self.name})"
@@ -28,7 +29,7 @@ team_interns = Team("interns", [team_temp])
 
 default_teams = [team_temp, team_admin, team_interns]
 
-def add_teams_to_table(teams: list[Team]) -> None:
+def add_teams_to_table(teams: List[Team]) -> None:
     cur.executemany("""INSERT INTO teams VALUES (?)""", [(team.name,) for team in teams])
     con.commit()
 
@@ -40,7 +41,7 @@ def add_default_teams_to_table() -> None:
     cur.executemany("""INSERT INTO subteams VALUES (?, ?)""", subteams)
     con.commit()
 
-def get_random_teams(extra_teams: list[Team]) -> list[Team]:
+def get_random_teams(extra_teams: List[Team]) -> List[Team]:
     return random.choice([
         [team_temp],
         [team_admin],
@@ -72,13 +73,13 @@ class User:
         self.name = name
         self.teams = []
 
-    def set_teams(self, teams: list[Team]) -> None:
+    def set_teams(self, teams: List[Team]) -> None:
         self.teams = teams
 
     def __repr__(self) -> str:
         return f"User({self.name}, {self.teams})"
 
-    def to_tuple(self) -> tuple[str, str]:
+    def to_tuple(self) -> Tuple[str, str]:
         return (str(self.uid), self.name)
 
     def as_euid(self) -> str:
@@ -95,7 +96,7 @@ class Task:
     def __init__(self, name: str) -> None:
         self.name = name
 
-    def to_tuple(self, lst_id: uuid.UUID) -> tuple[str, bool, str]:
+    def to_tuple(self, lst_id: uuid.UUID) -> Tuple[str, bool, str]:
         return (self.name, False, str(lst_id))
 
     def to_dict(self, i: int) -> dict:
@@ -118,13 +119,13 @@ class FactorizationTaskList:
     def __repr__(self) -> str:
         return f"FactorizationTaskList({self.name}, {self.owner.name}, {self.readers.name}, {self.editors.name})"
 
-    def to_tuple(self) -> tuple[str, str, str, str, str]:
+    def to_tuple(self) -> Tuple[str, str, str, str, str]:
         return (str(self.uid), str(self.owner.uid), self.name, self.readers.name, self.editors.name)
 
     def as_euid(self) -> str:
         return f'List::"{self.uid}"'
 
-    def generate_tasks(self) -> list[Task]:
+    def generate_tasks(self) -> List[Task]:
         return [
             Task(f'Factorize the number {i:,}') for i in range(self.start, self.end + 1)
         ]
@@ -142,7 +143,7 @@ class FactorizationTaskList:
 def create_random_team() -> Team:
     return Team(str(uuid.uuid4()), [])
 
-def create_random_team_or_existing(p: float, collecting: list[Team]) -> Team:
+def create_random_team_or_existing(p: float, collecting: List[Team]) -> Team:
     if random.random() > p:
         result = create_random_team()
         collecting.append(result)
@@ -150,7 +151,7 @@ def create_random_team_or_existing(p: float, collecting: list[Team]) -> Team:
     else:
         return random.choice(default_teams)
 
-def create_random_list(users: list[User], collection: list[Team]) -> FactorizationTaskList:
+def create_random_list(users: List[User], collection: List[Team]) -> FactorizationTaskList:
     """Creates a random team"""
     owner = random.choice(users)
     readers = create_random_team_or_existing(0.0001, collection)
@@ -160,7 +161,7 @@ def create_random_list(users: list[User], collection: list[Team]) -> Factorizati
     return FactorizationTaskList(owner, readers, editors, start, end)
 
 
-def create_random_lists(users: list[User], n: int) -> tuple[list[FactorizationTaskList], list[Team]]:
+def create_random_lists(users: List[User], n: int) -> Tuple[List[FactorizationTaskList], List[Team]]:
     collection = []
     result = [create_random_list(users, collection) for _ in range(n)]
     return result, collection
@@ -170,11 +171,11 @@ def create_random_user() -> User:
     """Create a random user"""
     return User(fake.name())
 
-def create_random_users(n: int) -> list[User]:
+def create_random_users(n: int) -> List[User]:
     """Create n randomly generated users"""
     return [create_random_user() for _ in range(n)]
 
-def add_users_to_table(users: list[User]) -> None:
+def add_users_to_table(users: List[User]) -> None:
     """Create a user table"""
     cur.executemany("""
         INSERT INTO users VALUES (?, ?)
@@ -188,19 +189,19 @@ def add_users_to_table(users: list[User]) -> None:
     """, team_memberships)
     con.commit()
 
-def add_lists_to_table(lists: list[FactorizationTaskList]) -> None:
+def add_lists_to_table(lists: List[FactorizationTaskList]) -> None:
     cur.executemany("""
         INSERT INTO lists VALUES (?, ?, ?, ?, ?)
     """, [list.to_tuple() for list in lists])
     con.commit()
 
-def add_tasks_to_table(lists: list[FactorizationTaskList]) -> None:
+def add_tasks_to_table(lists: List[FactorizationTaskList]) -> None:
     cur.executemany("""
         INSERT INTO tasks VALUES (?, ?, ?)
     """, [task.to_tuple(list.uid) for list in lists for task in list.generate_tasks()])
     con.commit()
 
-def add_to_tables(users: list[User], lists: list[FactorizationTaskList], extra_teams: list[Team]) -> None:
+def add_to_tables(users: List[User], lists: List[FactorizationTaskList], extra_teams: List[Team]) -> None:
     global cur, con
 
     entites_file = Path("./entities.huge.db")
@@ -218,7 +219,7 @@ def add_to_tables(users: list[User], lists: list[FactorizationTaskList], extra_t
     add_lists_to_table(lists)
     add_tasks_to_table(lists)
 
-def write_json(users: list[User], lists: list[FactorizationTaskList], extra_teams: list[Team]) -> None:
+def write_json(users: List[User], lists: List[FactorizationTaskList], extra_teams: List[Team]) -> None:
     with open('../tinytodo/entities.huge.json', 'w') as f:
         json.dump({
             'users': { user.as_euid(): user.to_dict() for user in users },
