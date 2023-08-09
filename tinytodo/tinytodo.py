@@ -84,7 +84,7 @@ class Server:
                 print('Unable to build using cargo!')
                 return
         self.proc =  subprocess.Popen([server_binary_path, port, file])
-        print('TinyTodo server started on port %s' % port)
+        print('TinyTodo server starting on port %s' % port)
 
 
     def kill(self):
