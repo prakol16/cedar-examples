@@ -51,18 +51,7 @@
       ]
     }
   },
-  "lists": {
-    "List::\"l0\"": {
-      "uid": "List::\"l0\"",
-      "owner": "User::\"kesha\"",
-      "name": "Lightning talk presentation",
-      "tasks": [
-        { "id": 0, "name": "Create a huge entity database", "state": "Unchecked" }
-      ],
-      "readers": "Team::\"temp\"",
-      "editors": "Team::\"admin\""
-    }
-  },
+  "lists": {},
   "app": {
     "euid": "Application::\"TinyTodo\""
   }

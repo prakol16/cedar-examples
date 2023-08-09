@@ -29,9 +29,9 @@ use tracing::Level;
 #[tokio::main]
 async fn main() {
     init_logger();
-    
     let args = std::env::args().collect::<Vec<_>>();
-    let entities_file = args.get(2).map(String::as_str).unwrap_or("./entities.json");
+
+    let entities_file = args.get(2).map(String::as_str).unwrap_or("./huge_entities.db");
 
     let app = AppContext::spawn(
         entities_file,
@@ -39,7 +39,6 @@ async fn main() {
         "./policies.cedar",
     )
     .unwrap();
-
 
     match get_port(&args) {
         Ok(port) => crate::api::serve_api(app, port).await,
