@@ -6,6 +6,10 @@ from pathlib import Path
 import json
 from typing import List, Tuple
 
+def uuidv4() -> uuid.UUID:
+    """Return a random uuid but seeded"""
+    return uuid.UUID(int=random.getrandbits(128))
+
 class Team:
     def __init__(self, name: str, parents) -> None:
         self.name = name
@@ -69,7 +73,7 @@ def setup_tables() -> None:
 
 class User:
     def __init__(self, name: str) -> None:
-        self.uid = uuid.uuid4()
+        self.uid = uuidv4()
         self.name = name
         self.teams = []
 
@@ -108,7 +112,7 @@ class Task:
 
 class FactorizationTaskList:
     def __init__(self, owner: User, readers: Team, editors: Team, start: int, end: int) -> None:
-        self.uid = uuid.uuid4()
+        self.uid = uuid.UUID(int=random.getrandbits(128))
         self.owner = owner
         self.name = f'Factorize the numbers from {start:,} to {end:,}'
         self.readers = readers
@@ -141,7 +145,7 @@ class FactorizationTaskList:
         }
 
 def create_random_team() -> Team:
-    return Team(str(uuid.uuid4()), [])
+    return Team(str(uuidv4()), [])
 
 def create_random_team_or_existing(p: float, collecting: List[Team]) -> Team:
     if random.random() > p:
