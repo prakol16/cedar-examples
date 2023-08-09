@@ -207,7 +207,8 @@ def add_to_tables(users: List[User], lists: List[FactorizationTaskList], extra_t
     entites_file = Path("./entities.huge.db")
 
     # If the file already exists, remove it
-    entites_file.unlink(missing_ok=True)
+    if entites_file.exists():
+        entites_file.unlink()
 
     con = sqlite3.connect(entites_file)
     cur = con.cursor()
