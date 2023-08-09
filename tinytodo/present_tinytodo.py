@@ -1,6 +1,7 @@
 from tinytodo import *
+from typing import List
 
-def present(cmds: list[str]):
+def present(cmds: List[str]):
     print(f'Running {len(cmds)} commands')
     for cmd in cmds:
         input()
@@ -16,8 +17,8 @@ if __name__ == '__main__':
         """get_list('List::"l0"')""",
         """stop_server()""",
         """start_server('./entities.huge.json')""",
-        """set_user(User('b02cc63c-9daf-465b-82d9-bff7e113a6d9'))""",
-        """get_list('List::"2fe39ac9-c04c-424e-9f70-7083de89e51a"')""",
+        """set_user(User('c6c0ca05-bd98-8923-4fdc-d62be4b966f8'))""",
+        """get_list('List::"8f1e1aa9-81d1-a76e-a4f5-aee6b06430a2"')""",
         """get_lists()""",
         """stop_server()"""
     ])
