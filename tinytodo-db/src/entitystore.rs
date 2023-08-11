@@ -72,7 +72,7 @@ impl EntityDatabase for EntityStore {
     }
 
     fn partial_mode(&self) -> cedar_policy::Mode {
-        cedar_policy::Mode::Partial
+        cedar_policy::Mode::Concrete
     }
 }
 

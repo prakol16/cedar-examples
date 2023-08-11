@@ -13,8 +13,6 @@ if __name__ == '__main__':
         """start_server('./entities.json')""",
         """set_user(User('emina'))""",
         """get_list('List::"l0"')  # Emina has permission to read the list""",
-        """toggle_task('List::"l0"', 1)  # Emina also has permission to update the list""",
-        """get_list('List::"l0"')""",
         """get_list('List::"l1"')  # Emina does not have permission to read the list""",
         """stop_server()""",
         """start_server('./entities.huge.json', 8081)""",
