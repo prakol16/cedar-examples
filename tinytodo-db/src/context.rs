@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use cedar_db_example::expr_to_query::translate_residual_policies;
+use cedar_db_example::expr_to_query::translate_response;
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use sea_query::{Alias, SimpleExpr, Query, SqliteQueryBuilder, Condition, ConditionExpression};
+use sea_query::{Alias, Query, SqliteQueryBuilder, SelectStatement};
 use std::path::PathBuf;
 use tracing::{info, trace};
 
@@ -345,11 +345,10 @@ impl AppContext {
     fn get_lists(&self, r: GetLists) -> Result<AppResponse> {
         self.is_authorized(&r.uid, &*ACTION_GET_LISTS, &*APPLICATION_TINY_TODO)?;
 
-        let query_expr = self.get_all_authorized_lists(&r.uid, &*ACTION_GET_LIST)?;
-        let select = Query::select()
+        let mut query_expr = self.get_all_authorized_lists(&r.uid, &*ACTION_GET_LIST)?;
+        let select = query_expr
             .column((Alias::new("resource"), Alias::new("uid")))
             .from_as(Alias::new("lists"), Alias::new("resource"))
-            .cond_where(Condition::any().add(query_expr))
             .to_string(SqliteQueryBuilder);
 
         info!("Running select query {}", select);
@@ -385,7 +384,7 @@ impl AppContext {
         Ok(AppResponse::Unit(()))
     }
 
-    pub fn get_all_authorized_lists(&self, principal: impl AsRef<EntityUid>, action: impl AsRef<EntityUid>) -> Result<ConditionExpression> {
+    pub fn get_all_authorized_lists(&self, principal: impl AsRef<EntityUid>, action: impl AsRef<EntityUid>) -> Result<SelectStatement> {
         let q = Request::builder()
             .principal(Some(principal.as_ref().clone().into()))
             .action(Some(action.as_ref().clone().into()))
@@ -395,22 +394,17 @@ impl AppContext {
         let response = self.authorizer.is_authorized_parsed(&q, &self.policies, &es);
         match response {
             cedar_policy::PartialResponse::Concrete(response) => {
-                Ok(SimpleExpr::from(response.decision() == Decision::Allow).into())
+                Ok(Query::select().and_where((response.decision() == Decision::Allow).into()).to_owned())
             },
             cedar_policy::PartialResponse::Residual(res) => {
-                let translated = translate_residual_policies(res, &self.schema,
+                Ok(translate_response(&res, &self.schema,
                     &|t1, t2| {
                     if *t1 == *TYPE_USER && *t2 == *TYPE_TEAM {
                         Ok((Alias::new("team_memberships"), Alias::new("user_uid"), Alias::new("team_uid")))
                     } else {
                         panic!("No tables available for membership test of types {:?} and {:?}", t1, t2)
                     }
-                });
-                let mut cond = Condition::any();
-                for c in translated.into_values() {
-                    cond = cond.add(c);
-                }
-                Ok(cond.into())
+                }).expect("Failed to translate residual policies"))
             },
         }
     }

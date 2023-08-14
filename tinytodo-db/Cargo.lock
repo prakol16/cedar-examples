@@ -242,6 +242,7 @@ dependencies = [
  "sea-query",
  "serde",
  "serde_json",
+ "smol_str",
  "thiserror",
 ]
 
