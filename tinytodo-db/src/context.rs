@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use cedar_db_example::expr_to_query::translate_response;
+use cedar_db_example::expr_to_query::{translate_response, InByTable};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use sea_query::{Alias, Query, SqliteQueryBuilder, SelectStatement};
@@ -398,13 +398,13 @@ impl AppContext {
             },
             cedar_policy::PartialResponse::Residual(res) => {
                 Ok(translate_response(&res, &self.schema,
-                    &|t1, t2| {
+                    &InByTable(|t1, t2| {
                     if *t1 == *TYPE_USER && *t2 == *TYPE_TEAM {
                         Ok((Alias::new("team_memberships"), Alias::new("user_uid"), Alias::new("team_uid")))
                     } else {
                         panic!("No tables available for membership test of types {:?} and {:?}", t1, t2)
                     }
-                }).expect("Failed to translate residual policies"))
+                })).expect("Failed to translate residual policies"))
             },
         }
     }
