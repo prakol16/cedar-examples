@@ -274,7 +274,8 @@ fn create_entities_obj() -> Entities {
 
     //println!("ATTRS:{:?}", attrs);
 
-    let user = Entity::new(u, attrs, HashSet::new());
+    let user = Entity::new(u, attrs, HashSet::new())
+        .expect("Restricted expressions should parse successfully");
     let mut v = vec![user];
 
     // create an action entity
@@ -283,7 +284,7 @@ fn create_entities_obj() -> Entities {
         EntityId::from_str("view").unwrap(),
     );
 
-    let action = Entity::new(t, HashMap::new(), HashSet::new());
+    let action = Entity::new_with_values(t, HashMap::new(), HashSet::new());
 
     v.push(action);
 
@@ -293,7 +294,7 @@ fn create_entities_obj() -> Entities {
         EntityId::from_str("trip").unwrap(),
     );
 
-    let resource = Entity::new(t, HashMap::new(), HashSet::new());
+    let resource = Entity::new_with_values(t, HashMap::new(), HashSet::new());
     v.push(resource);
 
     // create the Entities
@@ -361,8 +362,8 @@ fn validate() {
         action == Action::"view",
         resource == Album::"trip"
     )
-    when { 
-        
+    when {
+
         principal.age > 18
 
     };
@@ -385,11 +386,11 @@ fn validate() {
                         "UserGroup"
                     ]
                 },
-                
+
                 "UserGroup": {
                     "memberOfTypes": []
                 },
-                
+
                 "Album": {
                     "memberOfTypes": [
                         "Album"
@@ -462,8 +463,8 @@ fn to_json() {
         action == Action::"view",
         resource == Album::"trip"
     )
-    when { 
-        
+    when {
+
         principal.age < 18
 
     };

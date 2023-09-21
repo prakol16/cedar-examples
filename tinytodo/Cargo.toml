@@ -18,4 +18,6 @@ lazy_static = "1.4.0"
 notify = { version = "5.1.0", default-features = false, features = ["macos_kqueue"] }
 
 [dependencies.cedar-policy]
-version = "2.0.0"
+version = "2.3.0"
+git = "https://github.com/prakol16/cedar.git"
+branch = "more_generalized_entity_store_merge"

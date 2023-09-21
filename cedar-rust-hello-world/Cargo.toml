@@ -10,3 +10,5 @@ serde_json = "1.0"
 
 [dependencies.cedar-policy]
 version = "2.3.0"
+git = "https://github.com/prakol16/cedar.git"
+branch = "more_generalized_entity_store_merge"

@@ -16,7 +16,7 @@
 
 use std::{ops::Deref, str::FromStr};
 
-use cedar_policy::{EntityTypeName, ParseErrors, RestrictedExpression};
+use cedar_policy::{EntityTypeName, ParseErrors, RestrictedExpression, Value};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -304,6 +304,12 @@ pub struct EntityUid(
 impl AsRef<EntityUid> for EntityUid {
     fn as_ref(&self) -> &EntityUid {
         self
+    }
+}
+
+impl From<EntityUid> for Value {
+    fn from(value: EntityUid) -> Self {
+        value.0.into()
     }
 }
 

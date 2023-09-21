@@ -16,7 +16,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use cedar_policy::{Entity, EvalResult, RestrictedExpression};
+use cedar_policy::{Entity, Value, ValueKind, RestrictedExpression};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -47,7 +47,7 @@ impl Default for Application {
 
 impl From<Application> for Entity {
     fn from(a: Application) -> Self {
-        Entity::new(
+        Entity::new_with_values(
             a.euid().clone().into(),
             HashMap::default(),
             HashSet::default(),
@@ -83,7 +83,7 @@ impl User {
 impl From<User> for Entity {
     fn from(value: User) -> Entity {
         let euid: EntityUid = value.euid.into();
-        Entity::new(
+        Entity::new_with_values(
             euid.into(),
             HashMap::new(),
             value.parents.into_iter().map(|euid| euid.into()).collect(),
@@ -124,7 +124,7 @@ impl Team {
 impl From<Team> for Entity {
     fn from(team: Team) -> Entity {
         let euid: EntityUid = team.uid.into();
-        Entity::new(
+        Entity::new_with_values(
             euid.into(),
             HashMap::default(),
             team.parents.into_iter().map(|euid| euid.into()).collect(),
@@ -238,7 +238,7 @@ impl From<List> for Entity {
             .collect::<HashSet<_>>();
 
         let euid: EntityUid = value.uid.into();
-        Entity::new(euid.into(), attrs, parents)
+        Entity::new(euid.into(), attrs, parents).unwrap()
     }
 }
 
@@ -279,23 +279,25 @@ impl Ord for Task {
     }
 }
 
-impl TryFrom<&EvalResult> for Task {
+impl TryFrom<&Value> for Task {
     type Error = EntityDecodeError;
 
-    fn try_from(value: &EvalResult) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
         let id_field = "id";
         let name_field = "name";
         let state_field = "state";
-        match value {
-            EvalResult::Record(rcd) => {
+        match value.value_kind() {
+            ValueKind::Record(rcd) => {
                 let id = get_long(
                     rcd.get(id_field)
-                        .ok_or(EntityDecodeError::MissingAttr(id_field))?,
+                        .ok_or(EntityDecodeError::MissingAttr(id_field))?
+                        .value_kind(),
                     id_field,
                 )?;
                 let name = get_string(
                     rcd.get(name_field)
-                        .ok_or(EntityDecodeError::MissingAttr(name_field))?,
+                        .ok_or(EntityDecodeError::MissingAttr(name_field))?
+                        .value_kind(),
                     name_field,
                 )?
                 .clone();
@@ -326,16 +328,16 @@ impl From<Task> for RestrictedExpression {
     }
 }
 
-fn get_long(e: &EvalResult, name: &'static str) -> Result<i64, EntityDecodeError> {
+fn get_long(e: ValueKind, name: &'static str) -> Result<i64, EntityDecodeError> {
     match e {
-        EvalResult::Long(l) => Ok(*l),
+        ValueKind::Long(l) => Ok(l),
         _ => Err(EntityDecodeError::WrongType(name, "Long")),
     }
 }
 
-fn get_string<'a>(e: &'a EvalResult, name: &'static str) -> Result<&'a String, EntityDecodeError> {
+fn get_string(e: ValueKind, name: &'static str) -> Result<String, EntityDecodeError> {
     match e {
-        EvalResult::String(s) => Ok(s),
+        ValueKind::String(s) => Ok(s),
         _ => Err(EntityDecodeError::WrongType(name, "String")),
     }
 }
@@ -355,12 +357,12 @@ impl std::fmt::Display for TaskState {
     }
 }
 
-impl TryFrom<&EvalResult> for TaskState {
+impl TryFrom<&Value> for TaskState {
     type Error = EntityDecodeError;
 
-    fn try_from(value: &EvalResult) -> Result<Self, Self::Error> {
-        match value {
-            EvalResult::String(s) => match s.as_str() {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value.value_kind() {
+            ValueKind::String(s) => match s.as_str() {
                 "checked" => Ok(TaskState::Checked),
                 "unchecked" => Ok(TaskState::Unchecked),
                 _ => Err(EntityDecodeError::BadEnum {
