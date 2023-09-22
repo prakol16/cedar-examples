@@ -16,7 +16,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use cedar_policy::{Entity, EvalResult, RestrictedExpression};
+use cedar_policy::{Entity, EvalResult, RestrictedExpression, EvaledEntity};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -45,9 +45,9 @@ impl Default for Application {
     }
 }
 
-impl From<Application> for Entity {
+impl From<Application> for EvaledEntity {
     fn from(a: Application) -> Self {
-        Entity::new(
+        EvaledEntity::new(
             a.euid().clone().into(),
             HashMap::default(),
             HashSet::default(),
@@ -80,10 +80,10 @@ impl User {
     }
 }
 
-impl From<User> for Entity {
-    fn from(value: User) -> Entity {
+impl From<User> for EvaledEntity {
+    fn from(value: User) -> EvaledEntity {
         let euid: EntityUid = value.euid.into();
-        Entity::new(
+        EvaledEntity::new(
             euid.into(),
             HashMap::new(),
             value.parents.into_iter().map(|euid| euid.into()).collect(),
@@ -121,10 +121,10 @@ impl Team {
     }
 }
 
-impl From<Team> for Entity {
-    fn from(team: Team) -> Entity {
+impl From<Team> for EvaledEntity {
+    fn from(team: Team) -> EvaledEntity {
         let euid: EntityUid = team.uid.into();
-        Entity::new(
+        EvaledEntity::new(
             euid.into(),
             HashMap::default(),
             team.parents.into_iter().map(|euid| euid.into()).collect(),
@@ -207,7 +207,7 @@ impl List {
     }
 }
 
-impl From<List> for Entity {
+impl From<List> for EvaledEntity {
     fn from(value: List) -> Self {
         let attrs = [
             (
@@ -238,7 +238,7 @@ impl From<List> for Entity {
             .collect::<HashSet<_>>();
 
         let euid: EntityUid = value.uid.into();
-        Entity::new(euid.into(), attrs, parents)
+        Entity::new(euid.into(), attrs, parents).eval_attrs().unwrap()
     }
 }
 

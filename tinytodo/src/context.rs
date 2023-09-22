@@ -408,7 +408,7 @@ impl AppContext {
             action.as_ref(),
             resource.as_ref()
         );
-        let response = self.authorizer.is_authorized(&q, &self.policies, &es);
+        let response = self.authorizer.is_authorized_generic(&q, &self.policies, &es);
         info!("Auth response: {:?}", response);
         match response.decision() {
             Decision::Allow => Ok(()),

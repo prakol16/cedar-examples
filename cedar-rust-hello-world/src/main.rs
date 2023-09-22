@@ -19,7 +19,7 @@ use cedar_policy::PrincipalConstraint::{Any, Eq, In};
 use cedar_policy::{
     Authorizer, Context, Decision, Entities, Entity, EntityId, EntityTypeName, EntityUid, Policy,
     PolicyId, PolicySet, Request, Response, RestrictedExpression, Schema, SlotId, Template,
-    ValidationMode, ValidationResult, Validator,
+    ValidationMode, ValidationResult, Validator, EvaledEntities, EvaledEntity,
 };
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
@@ -258,7 +258,7 @@ fn entity_objects() {
         age:17
         ip_addr:10.0.0.1
 */
-fn create_entities_obj() -> Entities {
+fn create_entities_obj() -> EvaledEntities {
     let u = EntityUid::from_type_name_and_id(
         EntityTypeName::from_str("User").unwrap(),
         EntityId::from_str("alice").unwrap(),
@@ -274,7 +274,7 @@ fn create_entities_obj() -> Entities {
 
     //println!("ATTRS:{:?}", attrs);
 
-    let user = Entity::new(u, attrs, HashSet::new());
+    let user = Entity::new(u, attrs, HashSet::new()).eval_attrs().unwrap();
     let mut v = vec![user];
 
     // create an action entity
@@ -283,7 +283,7 @@ fn create_entities_obj() -> Entities {
         EntityId::from_str("view").unwrap(),
     );
 
-    let action = Entity::new(t, HashMap::new(), HashSet::new());
+    let action = EvaledEntity::new(t, HashMap::new(), HashSet::new());
 
     v.push(action);
 
@@ -293,15 +293,15 @@ fn create_entities_obj() -> Entities {
         EntityId::from_str("trip").unwrap(),
     );
 
-    let resource = Entity::new(t, HashMap::new(), HashSet::new());
+    let resource = EvaledEntity::new(t, HashMap::new(), HashSet::new());
     v.push(resource);
 
     // create the Entities
-    Entities::from_entities(v).unwrap()
+    EvaledEntities::from_entities(v).unwrap()
 }
 
 ///create entities from JSON
-fn create_entities_json() -> Entities {
+fn create_entities_json() -> EvaledEntities {
     let e = r#"[
         {
             "uid": {"type":"User","id":"alice"},
@@ -324,6 +324,8 @@ fn create_entities_json() -> Entities {
     ]"#;
 
     Entities::from_json_str(e, None).expect("entity error")
+        .eval_attrs()
+        .expect("Should not get evaluation error when evaluating attributes")
 }
 
 /// Prints the Answer from the Authorization
@@ -348,9 +350,9 @@ fn print_response(ans: Response) {
 }
 
 /// This uses the waterford API to call the authorization engine.
-fn execute_query(request: &Request, policies: &PolicySet, entities: Entities) -> Response {
+fn execute_query(request: &Request, policies: &PolicySet, entities: EvaledEntities) -> Response {
     let authorizer = Authorizer::new();
-    authorizer.is_authorized(request, &policies, &entities)
+    authorizer.is_authorized_generic(request, &policies, &entities)
 }
 
 fn validate() {
@@ -361,8 +363,8 @@ fn validate() {
         action == Action::"view",
         resource == Album::"trip"
     )
-    when { 
-        
+    when {
+
         principal.age > 18
 
     };
@@ -385,11 +387,11 @@ fn validate() {
                         "UserGroup"
                     ]
                 },
-                
+
                 "UserGroup": {
                     "memberOfTypes": []
                 },
-                
+
                 "Album": {
                     "memberOfTypes": [
                         "Album"
@@ -444,7 +446,7 @@ fn annotate() {
     let policies = PolicySet::from_str(src).unwrap();
     let (p, a, r) = create_p_a_r();
     let request: Request = Request::new(Some(p), Some(a), Some(r), Context::empty());
-    let ans = execute_query(&request, &policies, Entities::empty());
+    let ans = execute_query(&request, &policies, EvaledEntities::empty());
     for reason in ans.diagnostics().reason() {
         //print all the annotations
         for (key, value) in policies.policy(&reason).unwrap().annotations() {
@@ -462,8 +464,8 @@ fn to_json() {
         action == Action::"view",
         resource == Album::"trip"
     )
-    when { 
-        
+    when {
+
         principal.age < 18
 
     };

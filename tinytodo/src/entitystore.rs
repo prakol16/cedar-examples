@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 
-use cedar_policy::{Entities, EntityId, EntityTypeName, EvaluationError};
+use cedar_policy::{EntityId, EntityTypeName, EvaluationError, EvaledEntities};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -45,13 +45,13 @@ impl EntityStore {
             .chain(std::iter::once(self.app.euid()))
     }
 
-    pub fn as_entities(&self) -> Entities {
+    pub fn as_entities(&self) -> EvaledEntities {
         let users = self.users.values().map(|user| user.clone().into());
         let teams = self.teams.values().map(|team| team.clone().into());
         let lists = self.lists.values().map(|list| list.clone().into());
         let app = std::iter::once(self.app.clone().into());
         let all = users.chain(teams).chain(lists).chain(app);
-        Entities::from_entities(all).unwrap()
+        EvaledEntities::from_entities(all).unwrap()
     }
 
     pub fn fresh_euid<T: TryFrom<EntityUid>>(&mut self, ty: EntityTypeName) -> Result<T, T::Error> {
